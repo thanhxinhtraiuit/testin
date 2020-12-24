@@ -32,6 +32,15 @@ class ServiceGroup extends Model
 
     public function getServiceGroupIDChil($service_group_id){
         $result = $this->select('service_group_id')->where('service_group_parent',$service_group_id)->get();
+
+        if(empty($result)) return [];
+        return $result;
+    }
+    public function getServiceGroupIDChilV2($service_group_id){
+        $result = $this->where('service_group_parent',$service_group_id)->get();
+        foreach ($result as $key => $value) {
+            $result[$key] = $value->load('services');
+        }
         if(empty($result)) return [];
         return $result;
     }
@@ -44,12 +53,21 @@ class ServiceGroup extends Model
             return $arrSGI;
         } 
         foreach ($arrSGI as $key => $value) {
-            // $arrSGI[]=$this->getAllServiceGroupId($value->service_group_id);
-            // return $arrSGI;
             return $arrSGI->merge($this->getAllServiceGroupId($value->service_group_id));
-
         }
         return $arrSGI;
+    }
+
+    public function getAllServiceGroupIdV2($service_group_id){
+        if(empty($service_group_id)) return;
+        $arrSGI = $this->getServiceGroupIDChilV2($service_group_id);
+        if(empty($arrSGI)){
+            return $arrSGI;
+        } 
+        foreach ($arrSGI as $key => $value) {
+            return $arrSGI = $arrSGI->merge($this->getAllServiceGroupIdV2($value->service_group_id));
+        }
+        return (array_unique($arrSGI->toArray(),SORT_REGULAR));
     }
 
     public function getAllService(){
@@ -60,7 +78,7 @@ class ServiceGroup extends Model
         foreach ($arrServiceGroupId as $key => $value) {
             $data = array_merge($data,$this->getServiceByServiceGroupId($value->service_group_id)->toArray());   
         }
-
+        
         return array_unique($data,SORT_REGULAR);
     }
 

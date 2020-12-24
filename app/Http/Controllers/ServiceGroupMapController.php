@@ -43,8 +43,15 @@ class ServiceGroupMapController extends Controller
        
     }
 
-    public function delete() {
-
+    public function destroy($group_service_map_id) {
+        $service_group_map = ServiceGroupMap::where('group_service_map_id',$group_service_map_id)->first();
+        $service_group_map->delete();       
+        $data = [
+            'status' => 1 ,
+            'message' => "deleted",
+            'data'=>""
+        ];
+        return response()->json($data);
     }
 
     
